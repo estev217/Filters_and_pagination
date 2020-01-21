@@ -3,6 +3,13 @@
 {% block title %}Liste des clients{% endblock %}
 
 {% block body %}
+    {{ form_start(form) }}
+    <div class="d-flex container">
+        <div>{{ form_widget(form.searchText) }}</div>
+        <div>{{ form_widget(form.nationality) }}</div>
+        <div><button class="btn btn-outline-dark">Search</button></div>
+    </div>
+    {{ form_end(form) }}
     <div class="container mt-3">
         <div class="d-flex justify-content-between px-3">
             <div><h1>Liste des clients</h1></div>
@@ -39,5 +46,8 @@
             {% endfor %}
             </tbody>
         </table>
+        <div class="pagination d-flex justify-content-center fixed-bottom">
+            {{ knp_pagination_render(customers) }}
+        </div>
     </div>
 {% endblock %}

@@ -3,8 +3,11 @@
 namespace App\Repository;
 
 use App\Entity\Customer;
+use App\Entity\CustomerSearch;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Common\Persistence\ManagerRegistry;
+use Doctrine\ORM\Query;
+use Doctrine\ORM\QueryBuilder;
 
 /**
  * @method Customer|null find($id, $lockMode = null, $lockVersion = null)
@@ -17,6 +20,32 @@ class CustomerRepository extends ServiceEntityRepository
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Customer::class);
+    }
+
+    private function findVisibleQuery(): QueryBuilder
+    {
+        return $this->createQueryBuilder('c')
+            ->orderBy('c.id', 'DESC');
+    }
+
+    public function findAllVisibleQuery(CustomerSearch $search): Query
+    {
+        $query = $this->findVisibleQuery();
+
+        if ($search->getNationality()){
+            $query = $query
+                ->innerJoin('c.nationality', 'n')
+                ->addSelect('n')
+                ->andWhere('c.nationality = :nationalityId')
+                ->setParameter('nationalityId', $search->getNationality()->getId());
+        }
+        if ($search->getSearchText()){
+            $query = $query
+                ->andWhere('c.firstname LIKE :firstname OR c.lastname LIKE :lastname')
+                ->setParameter('firstname', '%' . $search->getSearchText() . '%')
+                ->setParameter('lastname', '%' . $search->getSearchText() . '%');
+        }
+        return $query->getQuery();
     }
 
     // /**

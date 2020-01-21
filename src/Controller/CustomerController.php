@@ -3,8 +3,11 @@
 namespace App\Controller;
 
 use App\Entity\Customer;
+use App\Entity\CustomerSearch;
+use App\Form\CustomerSearchType;
 use App\Form\CustomerType;
 use App\Repository\CustomerRepository;
+use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,10 +21,21 @@ class CustomerController extends AbstractController
     /**
      * @Route("/", name="customer_index", methods={"GET"})
      */
-    public function index(CustomerRepository $customerRepository): Response
+    public function index(CustomerRepository $customerRepository, PaginatorInterface $paginator, Request $request): Response
     {
+        $search = new CustomerSearch();
+        $form = $this->createForm(CustomerSearchType::class, $search);
+        $form->handleRequest($request);
+
+        $customers = $paginator->paginate(
+            $customerRepository->findAllVisibleQuery($search),
+            $request->query->getInt('page', 1),
+            6
+        );
+
         return $this->render('customer/index.html.twig', [
-            'customers' => $customerRepository->findAll(),
+            'customers' => $customers,
+            'form' => $form->createView(),
         ]);
     }
 
